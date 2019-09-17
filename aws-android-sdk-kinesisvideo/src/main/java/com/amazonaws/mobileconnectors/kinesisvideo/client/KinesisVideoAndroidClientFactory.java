@@ -37,6 +37,7 @@ import com.amazonaws.kinesisvideo.common.logging.LogLevel;
 import com.amazonaws.kinesisvideo.common.logging.OutputChannel;
 import com.amazonaws.kinesisvideo.producer.DeviceInfo;
 import com.amazonaws.kinesisvideo.producer.StorageInfo;
+import com.amazonaws.kinesisvideo.producer.StreamCallbacks;
 import com.amazonaws.kinesisvideo.producer.Tag;
 import com.amazonaws.kinesisvideo.storage.DefaultStorageCallbacks;
 import com.amazonaws.mobileconnectors.kinesisvideo.auth.KinesisVideoCredentialsProviderImpl;
@@ -50,6 +51,7 @@ public final class KinesisVideoAndroidClientFactory {
     private static final int SPILL_RATIO_90_PERCENT = 90;
     private static final long MIN_STORAGE_SIZE_64_MEGS = 64 * 1024 * 1024;
     private static final long MAX_STORAGE_SIZE_384_MEGS = 384 * 1024 * 1024;
+    private static final long MAX_STORAGE_SIZE_768_MEGS = 768 * 1024 * 1024;
     private static final double TOTAL_MEMORY_RATIO = 0.9;
     private static final String DEVICE_NAME = "android-client-library";
     private static final String STORAGE_PATH = Environment.getExternalStorageDirectory().getPath();
@@ -76,10 +78,12 @@ public final class KinesisVideoAndroidClientFactory {
      * @return
      * @throws KinesisVideoException
      */
-    public static KinesisVideoClient createKinesisVideoClient(final @NonNull Context context,
-            final @NonNull AWSCredentialsProvider credentialsProvider)
+    public static KinesisVideoClient createKinesisVideoClient(
+            final @NonNull Context context,
+            final @NonNull AWSCredentialsProvider credentialsProvider,
+            final StreamCallbacks streamCallbacks)
             throws KinesisVideoException {
-        return createKinesisVideoClient(context, Regions.DEFAULT_REGION, credentialsProvider);
+        return createKinesisVideoClient(context, Regions.DEFAULT_REGION, credentialsProvider, streamCallbacks);
     }
 
     /**
@@ -91,9 +95,11 @@ public final class KinesisVideoAndroidClientFactory {
      * @return
      * @throws KinesisVideoException
      */
-    public static KinesisVideoClient createKinesisVideoClient(final @NonNull Context context,
+    public static KinesisVideoClient createKinesisVideoClient(
+            final @NonNull Context context,
             final @NonNull Regions regions,
-            final @NonNull AWSCredentialsProvider awsCredentialsProvider)
+            final @NonNull AWSCredentialsProvider awsCredentialsProvider,
+            final StreamCallbacks streamCallbacks)
             throws KinesisVideoException {
         final OutputChannel outputChannel = new AndroidLogOutputChannel();
 
@@ -115,17 +121,20 @@ public final class KinesisVideoAndroidClientFactory {
                 configuration,
                 defaultDeviceInfo(context),
                 log,
-                executor);
+                executor,
+                streamCallbacks);
     }
 
     /**
      * Create KinesisVideo client.
      */
-    public static KinesisVideoClient createKinesisVideoClient(final @NonNull Context context,
+    public static KinesisVideoClient createKinesisVideoClient(
+            final @NonNull Context context,
             final @NonNull KinesisVideoClientConfiguration configuration,
             final @NonNull DeviceInfo deviceInfo,
             final @NonNull Log log,
-            final @NonNull ScheduledExecutorService executor) throws KinesisVideoException
+            final @NonNull ScheduledExecutorService executor,
+            final StreamCallbacks streamCallbacks) throws KinesisVideoException
     {
         if (KINESIS_VIDEO_CLIENT_INSTANCE == null) {
             final KinesisVideoAndroidServiceClient serviceClient = new KinesisVideoAndroidServiceClient(log);
@@ -134,7 +143,8 @@ public final class KinesisVideoAndroidClientFactory {
                     context,
                     configuration,
                     serviceClient,
-                    executor);
+                    executor,
+                    streamCallbacks);
 
             kinesisVideoClient.initialize(deviceInfo);
 
@@ -175,7 +185,7 @@ public final class KinesisVideoAndroidClientFactory {
 
         activityManager.getMemoryInfo(memoryInfo);
         final long available =  (long) (memoryInfo.availMem * TOTAL_MEMORY_RATIO);
-        return Math.min(MAX_STORAGE_SIZE_384_MEGS, available);
+        return Math.min(MAX_STORAGE_SIZE_768_MEGS, available);
     }
 
     private static Tag[] defaultDeviceTags() {

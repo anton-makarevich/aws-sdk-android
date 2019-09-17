@@ -94,21 +94,23 @@ public class NativeKinesisVideoClient extends AbstractKinesisVideoClient {
         this(new Log(configuration.getLogChannel(), LogLevel.VERBOSE, TAG),
                 configuration,
                 serviceClient,
-                executor);
-    }
+                executor,
+                new DefaultStreamCallbacks());
+}
 
     public NativeKinesisVideoClient(
             @NonNull final Log log,
             @NonNull final KinesisVideoClientConfiguration configuration,
             @NonNull final KinesisVideoServiceClient serviceClient,
-            @NonNull final ScheduledExecutorService executor) {
+            @NonNull final ScheduledExecutorService executor,
+            final StreamCallbacks streamCallbacks) {
         this(log,
                 new DefaultAuthCallbacks(configuration.getCredentialsProvider(),
                         executor,
                         log),
                 configuration.getStorageCallbacks(),
                 new DefaultServiceCallbacksImpl(log, executor, configuration, serviceClient),
-                new DefaultStreamCallbacks());
+                streamCallbacks);
     }
 
     public NativeKinesisVideoClient(

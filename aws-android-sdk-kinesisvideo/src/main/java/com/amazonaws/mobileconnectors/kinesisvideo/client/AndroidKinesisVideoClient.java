@@ -30,6 +30,7 @@ import com.amazonaws.kinesisvideo.internal.client.mediasource.MediaSourceConfigu
 import com.amazonaws.kinesisvideo.common.exception.KinesisVideoException;
 import com.amazonaws.kinesisvideo.common.logging.Log;
 import com.amazonaws.kinesisvideo.internal.producer.client.KinesisVideoServiceClient;
+import com.amazonaws.kinesisvideo.producer.StreamCallbacks;
 import com.amazonaws.mobileconnectors.kinesisvideo.mediasource.android.AndroidMediaSourceFactory;
 import com.amazonaws.mobileconnectors.kinesisvideo.util.CameraUtils;
 
@@ -58,11 +59,13 @@ public final class AndroidKinesisVideoClient extends NativeKinesisVideoClient {
             @NonNull final Context context,
             @NonNull final KinesisVideoClientConfiguration configuration,
             @NonNull final KinesisVideoServiceClient serviceClient,
-            @NonNull final ScheduledExecutorService executor) {
+            @NonNull final ScheduledExecutorService executor,
+            final StreamCallbacks streamCallbacks) {
         super(log,
                 configuration,
                 serviceClient,
-                executor);
+                executor,
+                streamCallbacks);
 
         mContext = context;
     }
